@@ -1,0 +1,8 @@
+{
+  "globals": {
+    "require": true,
+    "_": true,
+    "process": true,
+    "module": true
+  }
+}

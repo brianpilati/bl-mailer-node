@@ -37,3 +37,6 @@ node_modules
 
 config.js
 build
+
+app/csvFiles
+app/emailFiles
