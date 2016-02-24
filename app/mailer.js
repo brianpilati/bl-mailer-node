@@ -10,11 +10,13 @@ var options = {
 var emailer;
 
 function loadOptions() {
+    'use strict';
+
     function areOptionsValid() {
         return options.emailDirectoryName && options.csvFileName;
     }
 
-    _.forEach(process.argv, function (option) {
+    _.forEach(process.argv, function(option) {
         if (option === '--live=true') {
             options.isTest = false;
         } else if (option.match(/--emailDir=.*/)) {
@@ -22,7 +24,7 @@ function loadOptions() {
         } else if (option.match(/--csvFile=.*/)) {
             options.csvFileName = option.split('=')[1];
         } else if (option.match(/--debugLevel=\d+/)) {
-            options.debugLevel= option.split('=')[1];
+            options.debugLevel = option.split('=')[1];
         } else if (option === '-h' || option === '--help') {
             utils.debug('Help:');
             utils.debug('--emailDir=<String>; The name of the directory for the email body and subject files.');
@@ -34,7 +36,7 @@ function loadOptions() {
     });
 
     utils.setDebugLevel(options.debugLevel);
-    return areOptionsValid()
+    return areOptionsValid();
 }
 
 var BLEmailer = function() {

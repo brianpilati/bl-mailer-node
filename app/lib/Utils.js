@@ -70,8 +70,8 @@ Utils.prototype = (function() {
         getEmailObject: function(directory) {
             return {
                 emailBody: this.$$getEmailBody(directory),
-                emailSubject: this.$$getEmailSubject(directory),
-            }
+                emailSubject: this.$$getEmailSubject(directory)
+            };
         },
         $$getEmailBody: function(directory) {
             return this.readFromFile(this.getFilePath(['app', 'emailFiles', directory, 'emailBody.txt']));
