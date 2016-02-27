@@ -6,19 +6,53 @@ var q = require('q');
 var options = {
     isTest: true,
     debugLevel: 1,
-    includeNewClients: false
+    includeNewClients: false,
+    usaOnlyClients: false,
+    internationalOnlyClients: false
 };
 var emailer;
 
 function loadOptions() {
     'use strict';
 
+    function validEmailDirectoryName() {
+        return options.emailDirectoryName;
+    }
+
+    function validCSVFileName() {
+        return options.csvFileName;
+    }
+
+    function validDisplayClients() {
+        return options.displayClients;
+    }
+
     function validSendEmailOption() {
-        return options.emailDirectoryName && options.csvFileName;
+        if (validEmailDirectoryName() && validCSVFileName()) {
+            return true;
+        } else {
+            if (!validEmailDirectoryName()) {
+                utils.debug('No Email Directory');
+            }
+
+            if (!validCSVFileName()) {
+                utils.debug('No CSV File Name');
+            }
+        }
     }
 
     function validDisplayClientsOption() {
-        return options.displayClients && options.csvFileName;
+        if (validDisplayClients() && validCSVFileName()) {
+            return true;
+        } else {
+            if (!validDisplayClients()) {
+                utils.debug('No Display Clients');
+            }
+
+            if (!validCSVFileName()) {
+                utils.debug('No CSV File Name');
+            }
+        }
     }
 
     function areOptionsValid() {
@@ -38,14 +72,20 @@ function loadOptions() {
             options.displayClients = true;
         } else if (option === '--includeNewClients=true') {
             options.includeNewClients = true;
+        } else if (option === '--usaOnlyClients=true') {
+            options.usaOnlyClients = true;
+        } else if (option === '--internationalOnlyClients=true') {
+            options.internationalOnlyClients = true;
         } else if (option === '-h' || option === '--help') {
             utils.debug('Help:');
             utils.debug('--emailDir=<String>; The name of the directory for the email body and subject files.');
             utils.debug('--csvFile=<String>; The name of the csv file containing all the client names');
             utils.debug('--debugLevel=<Integer>; The level to debugging output. The default is <1>');
             utils.debug('--live=true; Whether to send emails or just test emails. The default is <false>');
-            utils.debug('--displayClients=true; Display all the clients for the given CSV file.');
-            utils.debug('--includeNewClientsFile=true; Include all clients in the app/csvFiles/newClients.csv file. The default is <false>');
+            utils.debug('--displayClients=<true|false>; Display all the clients for the given CSV file. The default is <false>');
+            utils.debug('--includeNewClientsFile=<true|false>; Include all clients in the app/csvFiles/newClients.csv file. The default is <false>');
+            utils.debug('--usaOnlyClients=<true|false>; Include only clients from the USA. The default is <false>');
+            utils.debug('--internationalOnlyClients=<true|false>; Include only clients outside of the USA. The default is <false>');
             process.exit();
         }
     });
@@ -72,7 +112,14 @@ BLEmailer.prototype = (function() {
                 });
                 utils.debug('Number of Clients: ' + clients.length);
             };
-            csv.buildCSV(filePath, options.includeNewClients, displayClients);
+
+            csv.buildCSV({
+                filePath: filePath,
+                includeNewClients: options.includeNewClients,
+                usaOnlyClients: options.usaOnlyClients,
+                internationalOnlyClients: options.internationalOnlyClients,
+                callback: displayClients
+            });
         },
         loadClientList: function() {
             var self = this;
@@ -80,7 +127,14 @@ BLEmailer.prototype = (function() {
             var clientsLoaded = function(clients) {
                 self.postEmail(clients);
             };
-            csv.buildCSV(filePath, options.includeNewClients, clientsLoaded);
+
+            csv.buildCSV({
+                filePath: filePath,
+                includeNewClients: options.includeNewClients,
+                usaOnlyClients: options.usaOnlyClients,
+                internationalOnlyClients: options.internationalOnlyClients,
+                callback: clientsLoaded 
+            });
         },
         addCookie: function(response) {
             if (response && response.headers) {

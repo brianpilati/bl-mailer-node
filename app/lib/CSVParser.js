@@ -10,19 +10,33 @@ var CSVParser = function() {
 CSVParser.prototype = (function() {
     'use strict';
     return {
-        loadCSV: function(filename, callback) {
+        loadCSV: function(filename, loadOptions, callback) {
             var self = this;
+            function addClient(client) {
+                if (self.duplicateUsers[client.Buyer]) {
+                    self.duplicateUsers[client.Buyer].storePurchases++;
+                } else {
+                    self.duplicateUsers[client.Buyer] = {
+                        storePurchases: 1,
+                        location: client.Location
+                    };
+                }
+            }
+
             csv.fromPath(filename, {
                 headers: true
             }).transform(function(data) {
                 if (data.Buyer) {
-                    if (self.duplicateUsers[data.Buyer]) {
-                        self.duplicateUsers[data.Buyer].storePurchases++;
+                    if (loadOptions.usaOnlyClients) {
+                        if (data.Location.match(/USA.*/)) {
+                            addClient(data);
+                        }
+                    } else if (loadOptions.internationalOnlyClients) {
+                        if (! data.Location.match(/USA.*/)) {
+                            addClient(data);
+                        }
                     } else {
-                        self.duplicateUsers[data.Buyer] = {
-                            storePurchases: 1,
-                            location: data.Location
-                        };
+                        addClient(data);
                     }
                 }
             }).on('end', function() {
@@ -39,23 +53,23 @@ CSVParser.prototype = (function() {
                 callback(clients);
             });
         },
-        buildCSV: function(filename, includeNewClients, callback) {
+        buildCSV: function(buildOptions) {
             var self = this;
 
             var newClients = function(clients) {
-                callback(clients);
+                buildOptions.callback(clients);
             };
 
             var originalClients = function(clients) {
-                if (includeNewClients) {
+                if (buildOptions.includeNewClients) {
                     var filename = utils.getFilePath(['app', 'csvFiles', 'newClients.csv']);
-                    self.loadCSV(filename, newClients);
+                    self.loadCSV(filename, buildOptions, newClients);
                 } else {
-                    callback(clients);
+                    buildOptions.callback(clients);
                 }
             };
 
-            this.loadCSV(filename, originalClients);
+            this.loadCSV(buildOptions.filePath, buildOptions, originalClients);
         }
     };
 })();
