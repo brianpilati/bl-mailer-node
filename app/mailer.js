@@ -180,10 +180,10 @@ BLEmailer.prototype = (function() {
                     })
                     .end(function(response) {
                         utils.debug(response.body, 2);
-                        utils.debug(number + '/' + totalClients + ' :: ' + new Date() + ' - Emailed: ' + client.username + ' => Status:' + response.status, 1);
+                        utils.debug(number + '/' + totalClients + ' :: ' + new Date() + ' - Emailed: ' + brickLinkUserName + ' => Status:' + response.status, 1);
 
                         if (response.status !== 200) {
-                            utils.writeToFile('postEmail_' + client.username, response.body);
+                            utils.writeToFile('postEmail_' + brickLinkUserName, response.body);
                         }
                         deferred.resolve(response.status);
                     });
