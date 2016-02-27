@@ -12,8 +12,16 @@ var emailer;
 function loadOptions() {
     'use strict';
 
-    function areOptionsValid() {
+    function validSendEmailOption() {
         return options.emailDirectoryName && options.csvFileName;
+    }
+
+    function validDisplayClientsOption() {
+        return options.isDisplayClients && options.csvFileName;
+    }
+
+    function areOptionsValid() {
+        return validSendEmailOption() || validDisplayClientsOption();
     }
 
     _.forEach(process.argv, function(option) {
@@ -25,12 +33,15 @@ function loadOptions() {
             options.csvFileName = option.split('=')[1];
         } else if (option.match(/--debugLevel=\d+/)) {
             options.debugLevel = option.split('=')[1];
+        } else if (option === '--displayClients') {
+            options.displayClients = true;
         } else if (option === '-h' || option === '--help') {
             utils.debug('Help:');
             utils.debug('--emailDir=<String>; The name of the directory for the email body and subject files.');
             utils.debug('--csvFile=<String>; The name of the csv file containing all the client names');
             utils.debug('--debugLevel=<Integer>; The level to debugging output. The default is <1>');
             utils.debug('--live=true; Whether to send emails or just test emails. The default is <false>');
+            utils.debug('--displayClients=true; Display all the clients for the given CSV file.');
             process.exit();
         }
     });
@@ -48,6 +59,14 @@ var BLEmailer = function() {
 BLEmailer.prototype = (function() {
     'use strict';
     return {
+        displayClientList: function() {
+            var self = this;
+            var filePath = utils.getFilePath(['app', 'csvFiles', options.csvFileName]);
+            var clientsLoaded = function(clients) {
+                utils.debug(clients);
+            };
+            csv.buildCSV(filePath, displayClients);
+        },
         loadClientList: function() {
             var self = this;
             var filePath = utils.getFilePath(['app', 'csvFiles', options.csvFileName]);
@@ -146,7 +165,11 @@ BLEmailer.prototype = (function() {
 if (loadOptions()) {
     emailer = new BLEmailer();
     utils.debug('This is a ' + (options.isTest ? '"Test"' : '"Live"') + ' Run');
-    emailer.login();
+    if(isDisplayClients) {
+	emailer.displayClients();
+    } else {
+        emailer.login();
+    }
 } else {
     utils.debug('Error');
 }
