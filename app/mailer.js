@@ -166,7 +166,7 @@ if (loadOptions()) {
     emailer = new BLEmailer();
     utils.debug('This is a ' + (options.isTest ? '"Test"' : '"Live"') + ' Run');
     if(isDisplayClients) {
-	emailer.displayClients();
+	emailer.displayClientList();
     } else {
         emailer.login();
     }
