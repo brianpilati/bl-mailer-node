@@ -179,7 +179,7 @@ BLEmailer.prototype = (function() {
                     })
                     .end(function(response) {
                         utils.debug(response.body, 2);
-                        utils.debug('Emailed: ' + client.username + ' Status:' + response.status, 1);
+                        utils.debug(new Date() + ' - Emailed: ' + client.username + ' => Status:' + response.status, 1);
 
                         if (response.status !== 200) {
                             utils.writeToFile('postEmail_' + client.username, response.body);
@@ -188,10 +188,12 @@ BLEmailer.prototype = (function() {
                     });
                 return deferred.promise;
             };
-            _.forEach(clients, function(client) {
-                executeHttpRequest(client).then(function(status) {
-                    client.status = status;
-                });
+            _.forEach(clients, function(client, $index) {
+                setTimeout(function() {
+                    executeHttpRequest(client).then(function(status) {
+                        client.status = status;
+                    });
+                }, 5000 * $index);
             });
         },
         login: function() {
