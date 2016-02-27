@@ -144,11 +144,12 @@ BLEmailer.prototype = (function() {
             }
         },
         postEmail: function(clients) {
+            var totalClients = clients.length;
             var deferred = q.defer();
             var url = options.isTest ? 'http://bl-test-server.com/post.php' : 'https://www.bricklink.com/contact.asp';
             var self = this;
             var emailObject = utils.getEmailObject(options.emailDirectoryName);
-            var executeHttpRequest = function(client) {
+            var executeHttpRequest = function(client, number) {
                 var resource = unirest.post(url);
                 var brickLinkUserName = options.isTest ? 'cedarsith' : client.username;
                 resource
@@ -179,7 +180,7 @@ BLEmailer.prototype = (function() {
                     })
                     .end(function(response) {
                         utils.debug(response.body, 2);
-                        utils.debug(new Date() + ' - Emailed: ' + client.username + ' => Status:' + response.status, 1);
+                        utils.debug(number + '/' + totalClients + ' :: ' + new Date() + ' - Emailed: ' + client.username + ' => Status:' + response.status, 1);
 
                         if (response.status !== 200) {
                             utils.writeToFile('postEmail_' + client.username, response.body);
@@ -190,7 +191,7 @@ BLEmailer.prototype = (function() {
             };
             _.forEach(clients, function(client, $index) {
                 setTimeout(function() {
-                    executeHttpRequest(client).then(function(status) {
+                    executeHttpRequest(client, $index).then(function(status) {
                         client.status = status;
                     });
                 }, 5000 * $index);
