@@ -5,7 +5,8 @@ var csv = require('./lib/CSVParser');
 var q = require('q');
 var options = {
     isTest: true,
-    debugLevel: 1
+    debugLevel: 1,
+    includeNewClients: false
 };
 var emailer;
 
@@ -17,12 +18,10 @@ function loadOptions() {
     }
 
     function validDisplayClientsOption() {
-        
         return options.displayClients && options.csvFileName;
     }
 
     function areOptionsValid() {
-        console.log(validSendEmailOption() || validDisplayClientsOption());
         return validSendEmailOption() || validDisplayClientsOption();
     }
 
@@ -37,6 +36,8 @@ function loadOptions() {
             options.debugLevel = option.split('=')[1];
         } else if (option === '--displayClients=true') {
             options.displayClients = true;
+        } else if (option === '--includeNewClients=true') {
+            options.includeNewClients = true;
         } else if (option === '-h' || option === '--help') {
             utils.debug('Help:');
             utils.debug('--emailDir=<String>; The name of the directory for the email body and subject files.');
@@ -44,6 +45,7 @@ function loadOptions() {
             utils.debug('--debugLevel=<Integer>; The level to debugging output. The default is <1>');
             utils.debug('--live=true; Whether to send emails or just test emails. The default is <false>');
             utils.debug('--displayClients=true; Display all the clients for the given CSV file.');
+            utils.debug('--includeNewClientsFile=true; Include all clients in the app/csvFiles/newClients.csv file. The default is <false>');
             process.exit();
         }
     });
@@ -70,7 +72,7 @@ BLEmailer.prototype = (function() {
                 });
                 utils.debug('Number of Clients: ' + clients.length);
             };
-            csv.buildCSV(filePath, displayClients);
+            csv.buildCSV(filePath, options.includeNewClients, displayClients);
         },
         loadClientList: function() {
             var self = this;
@@ -78,7 +80,7 @@ BLEmailer.prototype = (function() {
             var clientsLoaded = function(clients) {
                 self.postEmail(clients);
             };
-            csv.buildCSV(filePath, clientsLoaded);
+            csv.buildCSV(filePath, options.includeNewClients, clientsLoaded);
         },
         addCookie: function(response) {
             if (response && response.headers) {
