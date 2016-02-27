@@ -13,17 +13,23 @@ CSVParser.prototype = (function() {
             csv.fromPath(filename, {
                 headers: true
             }).transform(function(data) {
-                if (duplicateUsers[data.Buyer]) {
-                    duplicateUsers[data.Buyer]++;
-                } else {
-                    duplicateUsers[data.Buyer] = 1;
+                if (data.Buyer) {
+                    if (duplicateUsers[data.Buyer]) {
+                        duplicateUsers[data.Buyer].storePurchases++;
+                    } else {
+                        duplicateUsers[data.Buyer] = {
+                            storePurchases: 1,
+                            location: data.Location
+                        };
+                    }
                 }
             }).on('end', function() {
                 var users = [];
-                _.forEach(duplicateUsers, function(purchaseCount, username) {
+                _.forEach(duplicateUsers, function(details, username) {
                     users.push({
                         username: username,
-                        storePurchases: purchaseCount,
+                        storePurchases: details.storePurchases,
+                        location: details.location,
                         emailed: false,
                         status: 0
                     });

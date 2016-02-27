@@ -17,10 +17,12 @@ function loadOptions() {
     }
 
     function validDisplayClientsOption() {
-        return options.isDisplayClients && options.csvFileName;
+        
+        return options.displayClients && options.csvFileName;
     }
 
     function areOptionsValid() {
+        console.log(validSendEmailOption() || validDisplayClientsOption());
         return validSendEmailOption() || validDisplayClientsOption();
     }
 
@@ -33,7 +35,7 @@ function loadOptions() {
             options.csvFileName = option.split('=')[1];
         } else if (option.match(/--debugLevel=\d+/)) {
             options.debugLevel = option.split('=')[1];
-        } else if (option === '--displayClients') {
+        } else if (option === '--displayClients=true') {
             options.displayClients = true;
         } else if (option === '-h' || option === '--help') {
             utils.debug('Help:');
@@ -62,8 +64,11 @@ BLEmailer.prototype = (function() {
         displayClientList: function() {
             var self = this;
             var filePath = utils.getFilePath(['app', 'csvFiles', options.csvFileName]);
-            var clientsLoaded = function(clients) {
-                utils.debug(clients);
+            var displayClients = function(clients) {
+                _.forEach(clients, function(client) {
+                    utils.debug('Client: ' + client.username + ' -- orders: ' + client.storePurchases + ' -- location: ' + client.location);
+                });
+                utils.debug('Number of Clients: ' + clients.length);
             };
             csv.buildCSV(filePath, displayClients);
         },
@@ -165,8 +170,8 @@ BLEmailer.prototype = (function() {
 if (loadOptions()) {
     emailer = new BLEmailer();
     utils.debug('This is a ' + (options.isTest ? '"Test"' : '"Live"') + ' Run');
-    if(isDisplayClients) {
-	emailer.displayClientList();
+    if (options.displayClients) {
+	    emailer.displayClientList();
     } else {
         emailer.login();
     }
